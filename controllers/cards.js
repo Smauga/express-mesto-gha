@@ -1,43 +1,44 @@
 const Card = require('../models/card');
+const { handleError } = require('../handleError');
 
-getCards = (req, res) => {
+const getCards = (req, res) => {
   Card.find({})
-    .then(cards => res.send(cards))
-    .catch(err => res.status(500).send({ message: err.message }));
+    .then((cards) => res.send(cards))
+    .catch((err) => handleError(err, res));
 };
 
-createCard = (req, res) => {
+const createCard = (req, res) => {
   const { name, link } = req.body;
 
   Card.create({ name, link, owner: req.user._id })
-    .then(card => res.send(card))
-    .catch(err => res.status(500).send({ message: err.message }));
+    .then((card) => res.send(card))
+    .catch((err) => handleError(err, res));
 };
 
-deleteCard = (req, res) => {
+const deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
-    .then(card => res.send(card))
-    .catch(err => res.status(500).send({ message: err.message }));
+    .then((card) => res.send(card))
+    .catch((err) => handleError(err, res));
 };
 
-likeCard = (req, res) => {
+const likeCard = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .then(card => res.send(card))
-    .catch(err => res.status(500).send({ message: err.message }));
+    .then((card) => res.send(card))
+    .catch((err) => handleError(err, res));
 };
 
-dislikeCard = (req, res) => {
+const dislikeCard = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .then(card => res.send(card))
-    .catch(err => res.status(500).send({ message: err.message }));
+    .then((card) => res.send(card))
+    .catch((err) => handleError(err, res));
 };
 
 module.exports = {
@@ -45,5 +46,5 @@ module.exports = {
   createCard,
   deleteCard,
   likeCard,
-  dislikeCard
-}
+  dislikeCard,
+};
