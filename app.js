@@ -25,6 +25,4 @@ app.use((req, res) => {
   res.status(404).send({ message: 'Адрес не существует' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}`);
-});
+app.listen(PORT);
