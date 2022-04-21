@@ -2,13 +2,13 @@ const User = require('../models/user');
 
 getUsers = (req, res) => {
   User.find({})
-    .then(users => res.send({ data: users }))
+    .then(users => res.send(users))
     .catch(err => res.status(500).send({ message: err.message }));
 };
 
 getUser = (req, res) => {
-  User.findById(req.params.id)
-    .then(user => res.send({ data: user }))
+  User.findById(req.params.userId)
+    .then(user => res.send(user))
     .catch(err => res.status(500).send({ message: err.message }));
 };
 
@@ -16,7 +16,7 @@ createUser = (req, res) => {
   const { name, about, avatar } = req.body;
 
   User.create({ name, about, avatar })
-    .then(user => res.send({ data: user }))
+    .then(user => res.send(user))
     .catch(err => res.status(500).send({ message: err.message }));
 };
 
@@ -28,7 +28,7 @@ updateUserInfo = (req, res) => {
       new: true,
       runValidators: true,
     })
-    .then(user => res.send({ data: user }))
+    .then(user => res.send(user))
     .catch(err => res.status(500).send({ message: err.message }));
 };
 
@@ -40,7 +40,7 @@ updateUserAvatar = (req, res) => {
       new: true,
       runValidators: true,
     })
-    .then(user => res.send({ data: user }))
+    .then(user => res.send(user))
     .catch(err => res.status(500).send({ message: err.message }));
 };
 
