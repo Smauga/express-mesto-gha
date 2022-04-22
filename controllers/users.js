@@ -1,5 +1,6 @@
 const User = require('../models/user');
-const { handleError } = require('../handleError');
+const { handleError } = require('../errors/handleError');
+const NotFoundError = require('../errors/NotFoundError');
 
 const getUsers = (req, res) => {
   User.find({})
@@ -9,6 +10,7 @@ const getUsers = (req, res) => {
 
 const getUser = (req, res) => {
   User.findById(req.params.userId)
+    .orFail(new NotFoundError('Пользователь не существует'))
     .then((user) => res.send(user))
     .catch((err) => handleError(err, res));
 };
