@@ -17,9 +17,15 @@ const createCard = (req, res) => {
 };
 
 const deleteCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
-    .orFail(new NotFoundError('Карточки не существует'))
-    .then((card) => res.send(card))
+  Card.findById(req.params.cardId)
+    .then((card) => {
+      if (req.user._id === card.owner.toString()) {
+        Card.findByIdAndRemove(req.params.cardId)
+          .orFail(new NotFoundError('Карточки не существует'))
+          .then((deletedCard) => res.send(deletedCard))
+          .catch((err) => handleError(err, res));
+      } else (console.log(1));
+    })
     .catch((err) => handleError(err, res));
 };
 
