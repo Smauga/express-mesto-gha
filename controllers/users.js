@@ -1,52 +1,57 @@
-const { isEmail } = require('validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const { handleError } = require('../errors/handleError');
 const NotFoundError = require('../errors/NotFoundError');
+const EmailError = require('../errors/EmailError');
+const DataError = require('../errors/DataError');
 const JWT_SECRET = require('../token');
 
-const getUsers = (req, res) => {
+const getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send(users))
-    .catch((err) => handleError(err, res));
+    .catch(next);
 };
 
-const getUser = (req, res) => {
+const getUser = (req, res, next) => {
   User.findById(req.params.userId)
-    .orFail(new NotFoundError('Пользователь не существует'))
-    .then((user) => res.send(user))
-    .catch((err) => handleError(err, res));
+    .then((user) => {
+      if (!user) throw new NotFoundError('Пользователь не существует');
+      res.send(user);
+    })
+    .catch(next);
 };
 
-const getCurrentUser = (req, res) => {
+const getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
-    .orFail(new NotFoundError('Пользователь не существует'))
-    .then((user) => res.send(user))
-    .catch((err) => handleError(err, res));
+    .then((user) => {
+      if (!user) throw new NotFoundError('Пользователь не существует');
+      res.send(user);
+    })
+    .catch(next);
 };
 
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const { email, password } = req.body;
-  if (isEmail(email)) {
-    bcrypt.hash(password, 10)
-      .then((hash) => {
-        User.create({ email, password: hash })
-          .then((user) => res.send(
-            {
-              email: user.email,
-              name: user.name,
-              about: user.about,
-              avatar: user.avatar,
-            },
-          ))
-          .catch((err) => handleError(err, res));
-      })
-      .catch((err) => handleError(err, res));
-  }
+  bcrypt.hash(password, 10)
+    .then((hash) => {
+      User.create({ email, password: hash })
+        .then((user) => res.send(
+          {
+            email: user.email,
+            name: user.name,
+            about: user.about,
+            avatar: user.avatar,
+          },
+        ))
+        .catch((err) => {
+          if (err.code === 11000) next(new EmailError('Некорректный e-mail'));
+          if (err.name === 'ValidationError' || err.name === 'CastError') next(new DataError('Некорректные данные'));
+        });
+    })
+    .catch(next);
 };
 
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
   return User.findUserByCredentials(email, password)
     .then((user) => {
@@ -57,33 +62,41 @@ const login = (req, res) => {
       );
       res.send({ token });
     })
-    .catch((err) => {
-      res
-        .status(401)
-        .send({ message: err.message });
-    });
+    .catch(next);
 };
 
-const updateUserInfo = (req, res) => {
+const updateUserInfo = (req, res, next) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { name, about }, {
     new: true,
     runValidators: true,
   })
-    .then((user) => res.send(user))
-    .catch((err) => handleError(err, res));
+    .then((user) => {
+      if (!user) throw new NotFoundError('Пользователь не найден');
+      res.send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError' || err.name === 'CastError') next(new DataError('Некорректные данные'));
+      next(err);
+    });
 };
 
-const updateUserAvatar = (req, res) => {
+const updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { avatar }, {
     new: true,
     runValidators: true,
   })
-    .then((user) => res.send(user))
-    .catch((err) => handleError(err, res));
+    .then((user) => {
+      if (!user) throw new NotFoundError('Пользователь не найден');
+      res.send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError' || err.name === 'CastError') next(new DataError('Некорректные данные'));
+      next(err);
+    });
 };
 
 module.exports = {

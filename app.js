@@ -5,6 +5,8 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
+const { handleError } = require('./errors/handleError');
+const NotFoundError = require('./errors/NotFoundError');
 
 const { PORT = 3000 } = process.env;
 
@@ -21,8 +23,10 @@ app.use(auth);
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
-app.use((req, res) => {
-  res.status(404).send({ message: 'Адрес не существует' });
+app.use((req, res, next) => next(new NotFoundError('Адрес не существует')));
+
+app.use((err, req, res, next) => {
+  handleError(err, req, res, next);
 });
 
 app.listen(PORT);
