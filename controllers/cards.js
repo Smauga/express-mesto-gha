@@ -57,7 +57,10 @@ const dislikeCard = (req, res, next) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => res.send(card))
+    .then((card) => {
+      if (!card) throw new NotFoundError('Несуществующий id карточки');
+      res.send(card);
+    })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') next(new DataError('Некорректный id карточки'));
       next(err);
