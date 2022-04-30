@@ -1,11 +1,13 @@
-const handleError = (err, res) => {
-  if (err.name === 'ValidationError' || err.name === 'CastError') {
-    return res.status(400).send({ message: 'Переданы некорректные данные' });
-  }
-  if (err.name === 'NotFoundError') {
-    return res.status(404).send({ message: err.message });
-  }
-  return res.status(500).send({ message: 'На сервере произошла ошибка' });
+const handleError = (err, req, res) => {
+  const { statusCode = 500, message } = err;
+
+  res
+    .status(statusCode)
+    .send({
+      message: statusCode === 500
+        ? 'На сервере произошла ошибка'
+        : message,
+    });
 };
 
 module.exports = { handleError };
