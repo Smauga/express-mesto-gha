@@ -31,10 +31,14 @@ const getCurrentUser = (req, res, next) => {
 };
 
 const createUser = (req, res, next) => {
-  const { email, password } = req.body;
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
   bcrypt.hash(password, 10)
     .then((hash) => {
-      User.create({ email, password: hash })
+      User.create({
+        name, about, avatar, email, password: hash,
+      })
         .then((user) => res.send(
           {
             email: user.email,
