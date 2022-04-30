@@ -25,13 +25,14 @@ const deleteCard = (req, res, next) => {
     .then((card) => {
       if (req.user._id !== card.owner.toString()) throw new AccessError('Невозможно удалить чужую карточку');
       Card.findByIdAndRemove(req.params.cardId)
-        .then((deletedCard) => {
-          if (!deletedCard) throw new NotFoundError('Карточки не существует');
-          res.send(deletedCard);
-        })
+        .then((deletedCard) => res.send(deletedCard))
         .catch(next);
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError' || err.name === 'CastError') next(new DataError('Некорректный id карточки'));
+      if (err.name === 'TypeError') next(new NotFoundError('Несуществующий id карточки'));
+      next(err);
+    });
 };
 
 const likeCard = (req, res, next) => {
@@ -40,11 +41,11 @@ const likeCard = (req, res, next) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => {
-      if (!card) throw new NotFoundError('Карточки не существует');
-      res.send(card);
-    })
-    .catch(next);
+    .then((card) => res.send(card))
+    .catch((err) => {
+      if (err.name === 'ValidationError' || err.name === 'CastError') next(new DataError('Некорректный id карточки'));
+      next(err);
+    });
 };
 
 const dislikeCard = (req, res, next) => {
@@ -53,11 +54,11 @@ const dislikeCard = (req, res, next) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => {
-      if (!card) throw new NotFoundError('Карточки не существует');
-      res.send(card);
-    })
-    .catch(next);
+    .then((card) => res.send(card))
+    .catch((err) => {
+      if (err.name === 'ValidationError' || err.name === 'CastError') next(new DataError('Некорректный id карточки'));
+      next(err);
+    });
 };
 
 module.exports = {
