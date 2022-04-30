@@ -3,6 +3,7 @@ const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const { errors } = require('celebrate');
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 const { handleError } = require('./errors/handleError');
@@ -24,6 +25,8 @@ app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
 app.use((req, res, next) => next(new NotFoundError('Адрес не существует')));
+
+app.use(errors());
 
 app.use((err, req, res, next) => {
   handleError(err, req, res, next);
