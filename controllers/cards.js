@@ -23,6 +23,7 @@ const createCard = (req, res, next) => {
 const deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId)
     .then((card) => {
+      if (!card) next(new NotFoundError('Несуществующий id карточки'));
       if (req.user._id !== card.owner.toString()) throw new AccessError('Невозможно удалить чужую карточку');
       Card.findByIdAndRemove(req.params.cardId)
         .then((deletedCard) => res.send(deletedCard))
@@ -30,7 +31,6 @@ const deleteCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') next(new DataError('Некорректный id карточки'));
-      if (err.name === 'TypeError') next(new NotFoundError('Несуществующий id карточки'));
       next(err);
     });
 };
