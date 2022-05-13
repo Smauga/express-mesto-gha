@@ -4,7 +4,7 @@ const User = require('../models/user');
 const NotFoundError = require('../errors/NotFoundError');
 const EmailError = require('../errors/EmailError');
 const DataError = require('../errors/DataError');
-const JWT_SECRET = require('../token');
+const { NODE_ENV, JWT_SECRET } = process.env;
 
 const getUsers = (req, res, next) => {
   User.find({})
@@ -61,10 +61,21 @@ const login = (req, res, next) => {
     .then((user) => {
       const token = jwt.sign(
         { _id: user._id },
-        JWT_SECRET,
+        NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
         { expiresIn: '7d' },
       );
-      res.send({ token });
+      res
+      .cookie('jwt', token, {
+        maxAge: 3600000 * 24 * 7,
+        httpOnly: true,
+      })
+      .send({
+            email: user.email,
+            name: user.name,
+            about: user.about,
+            avatar: user.avatar,
+          })
+      .end();
     })
     .catch(next);
 };

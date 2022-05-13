@@ -1,4 +1,5 @@
 const express = require('express');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 const mongoose = require('mongoose');
@@ -9,9 +10,11 @@ const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 const { handleError } = require('./errors/handleError');
 const NotFoundError = require('./errors/NotFoundError');
+require('dotenv').config();
 
 const { PORT = 3000 } = process.env;
 
+app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
